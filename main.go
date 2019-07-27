@@ -89,7 +89,7 @@ func main() {
 		filesCounter++
 
 		var fset token.FileSet
-		ast, err := parser.ParseFile(&fset, path, nil, parser.AllErrors)
+		ast, err := parser.ParseFile(&fset, path, nil, parser.AllErrors | parser.ParseComments)
 		if err != nil {
 			logger.Error().Err(err).Msgf("failed to parse %s", path)
 			return nil
