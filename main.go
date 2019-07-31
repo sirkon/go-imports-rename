@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -89,7 +90,7 @@ func main() {
 		filesCounter++
 
 		var fset token.FileSet
-		ast, err := parser.ParseFile(&fset, path, nil, parser.AllErrors | parser.ParseComments)
+		ast, err := parser.ParseFile(&fset, path, nil, parser.AllErrors|parser.ParseComments)
 		if err != nil {
 			logger.Error().Err(err).Msgf("failed to parse %s", path)
 			return nil
@@ -115,8 +116,15 @@ func main() {
 			}
 		}
 
-		if inputArgs.Save {
-			file, err := os.Create(path)
+		if inputArgs.Save && localChanges > 0 {
+			// create some temporary file in
+			fullRelPath := filepath.Join(inputArgs.Root, info.Name())
+			fullPath, err := filepath.Abs(fullRelPath)
+			if err != nil {
+				logger.Error().Err(err).Msgf("failed to resolve absolute path of %s", path)
+			}
+			dir, _ := filepath.Split(fullPath)
+			file, err := ioutil.TempFile(dir, path)
 			if err != nil {
 				logger.Error().Err(err).Msgf("failed to update %s", path)
 				return nil
@@ -127,6 +135,10 @@ func main() {
 			if err := file.Close(); err != nil {
 				logger.Error().Err(err).Msgf("something went wrong for %s", path)
 			}
+			if err := os.Rename(file.Name(), path); err != nil {
+				logger.Error().Err(err).Msgf("failed to update %s", path)
+			}
+
 			actualChanges += localChanges
 		}
 
