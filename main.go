@@ -118,13 +118,12 @@ func main() {
 
 		if inputArgs.Save && localChanges > 0 {
 			// create some temporary file in
-			fullRelPath := filepath.Join(inputArgs.Root, info.Name())
-			fullPath, err := filepath.Abs(fullRelPath)
+			fullPath, err := getFullPath(inputArgs.Root, info.Name())
 			if err != nil {
 				logger.Error().Err(err).Msgf("failed to resolve absolute path of %s", path)
 			}
-			dir, _ := filepath.Split(fullPath)
-			file, err := ioutil.TempFile(dir, path)
+			dir, base := filepath.Split(fullPath)
+			file, err := ioutil.TempFile(dir, base)
 			if err != nil {
 				logger.Error().Err(err).Msgf("failed to update %s", path)
 				return nil
@@ -193,4 +192,12 @@ func main() {
 	if err != nil {
 		logger.Error().Err(err).Msgf("failed to scan %s directory tree", inputArgs.Root)
 	}
+}
+
+func getFullPath(root string, name string) (string, error) {
+	rootAbs, err := filepath.Abs(root)
+	if err != nil {
+		return "", errors.WithMessage(err, "full absolute path computation")
+	}
+	return filepath.Join(rootAbs, name), nil
 }
