@@ -28,18 +28,26 @@ func (r *RuleType) UnmarshalText(rawText []byte) error {
 	text := string(rawText)
 	pos := strings.Index(text, "=>")
 	if pos < 0 {
-		return errors.Errorf("\033[1m=>\033[0m required in `From => To`, got `%s` instead", text)
+		pos = strings.Index(text, "+=")
+		if pos < 0 {
+			return errors.Errorf("\033[1m=>\033[0m required in `From (=>|+=) To or From += Suffix`, got `%s` instead", text)
+		}
 	}
 	from := strings.TrimSpace(text[:pos])
 	to := strings.TrimSpace(text[pos+2:])
+	operator := text[pos : pos+2]
 	if len(from) == 0 {
-		return errors.Errorf("From rule must not be emptyin `%s`", text)
+		return errors.Errorf("From rule must not be empty `%s`", text)
 	}
 	if len(to) == 0 {
 		return errors.Errorf("To rule must not be empty in `%s`", text)
 	}
 	r.From = from
-	r.To = to
+	if operator == "=>" {
+		r.To = to
+	} else if operator == "+=" {
+		r.To = r.From + to
+	}
 	return nil
 }
 
@@ -47,7 +55,7 @@ type args struct {
 	Regexp bool     `arg:"-r,--regexp" help:"use regexp to replace import paths"`
 	Root   string   `arg:"--root" help:"root path to search go files in"`
 	Save   bool     `arg:"-s,--save" help:"save changes"`
-	Rule   RuleType `arg:"positional,required" help:"From => To, where From and To must be either import prefix to switch or (Regexp, Replacement) couple"`
+	Rule   RuleType `arg:"positional,required" help:"From (=>|+=) To, where From and To must be either import prefix to switch or (Regexp, Replacement) couple"`
 }
 
 func (args) Description() string {
