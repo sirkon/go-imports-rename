@@ -3,8 +3,14 @@ Tool to change import paths
 
 ## Important case
 
-* Important case is to append suffix to existin path, i.e. to grow 'gitlab.example.com/common/utils' into 'gitlab.example.com/common/utils/v2'
-    use go-imports-rename 'gitlab.example.com/common/utils/ += v2' to grow 'gitlab.example.com/common/utils/package' into 'gitlab.example.com/common/utils/v2/package'
+* Important case is to append suffix to existing path, i.e. to grow `gitlab.example.com/common/utils` into `gitlab.example.com/common/utils/v2`
+
+    use 
+    
+    ```shell script
+    go-imports-rename 'gitlab.example.com/common/utils/ ++' 
+    ```
+    to grow `gitlab.example.com/common/utils/package` into `gitlab.example.com/common/utils/v2/package`
 
 ## Usage examples
 
