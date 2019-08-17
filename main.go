@@ -1,10 +1,9 @@
 package main
 
 import (
-	"encoding"
 	"fmt"
+	"go/format"
 	"go/parser"
-	"go/printer"
 	"go/token"
 	"io/ioutil"
 	"os"
@@ -14,48 +13,14 @@ import (
 	"github.com/alexflint/go-arg"
 	"github.com/pkg/errors"
 
+	parser2 "github.com/sirkon/go-imports-rename/internal/parser"
 	"github.com/sirkon/go-imports-rename/internal/replacer"
 )
 
-var _ encoding.TextUnmarshaler = &RuleType{}
-
-type RuleType struct {
-	From string
-	To   string
-}
-
-func (r *RuleType) UnmarshalText(rawText []byte) error {
-	text := string(rawText)
-	pos := strings.Index(text, "=>")
-	if pos < 0 {
-		pos = strings.Index(text, "+=")
-		if pos < 0 {
-			return errors.Errorf("\033[1m=>\033[0m required in `From (=>|+=) To or From += Suffix`, got `%s` instead", text)
-		}
-	}
-	from := strings.TrimSpace(text[:pos])
-	to := strings.TrimSpace(text[pos+2:])
-	operator := text[pos : pos+2]
-	if len(from) == 0 {
-		return errors.Errorf("From rule must not be empty `%s`", text)
-	}
-	if len(to) == 0 {
-		return errors.Errorf("To rule must not be empty in `%s`", text)
-	}
-	r.From = from
-	if operator == "=>" {
-		r.To = to
-	} else if operator == "+=" {
-		r.To = r.From + to
-	}
-	return nil
-}
-
 type args struct {
-	Regexp bool     `arg:"-r,--regexp" help:"use regexp to replace import paths"`
-	Root   string   `arg:"--root" help:"root path to search go files in"`
-	Save   bool     `arg:"-s,--save" help:"save changes"`
-	Rule   RuleType `arg:"positional,required" help:"From (=>|+=) To, where From and To must be either import prefix to switch or (Regexp, Replacement) couple"`
+	Root string   `arg:"--root" help:"root path to search go files in"`
+	Save bool     `arg:"-s,--save" help:"save changes"`
+	Rule RuleType `arg:"positional,required" help:"A rule to make import path changes"`
 }
 
 func (args) Description() string {
@@ -68,14 +33,21 @@ func main() {
 	argParse := arg.MustParse(&inputArgs)
 
 	var rep replacer.Replacer
-	if inputArgs.Regexp {
+	switch v := inputArgs.Rule.Rule.(type) {
+	case parser2.Prefix:
+		rep = replacer.Prefix(v.From, v.To)
+	case parser2.Add:
 		var err error
-		rep, err = replacer.RegexpReplace(inputArgs.Rule.From, inputArgs.Rule.To)
+		rep, err = replacer.Versioned(v.Import, v.Jump)
 		if err != nil {
 			argParse.Fail(err.Error())
 		}
-	} else {
-		rep = replacer.PrefixReplace(inputArgs.Rule.From, inputArgs.Rule.To)
+	case parser2.Regexp:
+		var err error
+		rep, err = replacer.Regexp(v.From, v.To)
+		if err != nil {
+			argParse.Fail(err.Error())
+		}
 	}
 
 	logger := newLogger()
@@ -136,7 +108,7 @@ func main() {
 				logger.Error().Err(err).Msgf("failed to update %s", path)
 				return nil
 			}
-			if err := printer.Fprint(file, &fset, ast); err != nil {
+			if err := format.Node(file, &fset, ast); err != nil {
 				logger.Error().Err(err).Msgf("error when saving changes to %s", path)
 			}
 			if err := file.Close(); err != nil {

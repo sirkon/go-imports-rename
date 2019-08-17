@@ -5,20 +5,20 @@ import (
 )
 
 type Variant interface {
-	dontTouchMe()
+	variant()
 }
 
 var _ Variant = Nothing{}
 
 type Nothing struct{}
 
-func (Nothing) dontTouchMe()	{}
+func (Nothing) variant() {}
 
 var _ Variant = Replacement("")
 var _ fmt.Stringer = Replacement("")
 
 type Replacement string
 
-func (r Replacement) String() string	{ return string(r) }
+func (r Replacement) String() string { return string(r) }
 
-func (r Replacement) dontTouchMe()	{}
+func (r Replacement) variant() {}
