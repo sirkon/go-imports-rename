@@ -1,4 +1,4 @@
-# imports-rename
+# go-imports-rename
 Tool to change import paths
 
 ## Important case
@@ -54,7 +54,7 @@ Tool to change import paths
     ```
 * Use `//` operator to imports rename with regular expression
     ```shell script
-    go-imports-rename --regexp '^gen/(.*)$ // gitlab.example.com/common/schema/$1' 
+    go-imports-rename '^gen/(.*)$ // gitlab.example.com/common/schema/$1' 
     ```
     will diagnose possible `gen/common` and similar imports changes into `gitlab.example.com/common/schema/common`, etc
      
