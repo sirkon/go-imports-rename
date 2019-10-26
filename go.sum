@@ -13,6 +13,11 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/rs/zerolog v1.14.3 h1:4EGfSkR2hJDB0s3oFfrlPqjU1e4WLncergLil3nEKW0=
 github.com/rs/zerolog v1.14.3/go.mod h1:3WXPzbXEEliJ+a6UFE4vhIxV8qR1EML6ngzP9ug4eYg=
+github.com/rs/zerolog v1.15.0 h1:uPRuwkWF4J6fGsJ2R0Gn2jB1EQiav9k3S6CSdygQJXY=
+github.com/rs/zerolog v1.15.0/go.mod h1:xYTKnLHcpfU2225ny5qZjxnj9NvkumZYjJHlAThCjNc=
+github.com/sirkon/errors v0.1.0/go.mod h1:azeNSqLplsbS6YKcxwU5fO1VPfh36jovHUJG8MrSswQ=
+github.com/sirkon/gosrcfmt v1.6.0 h1:r0G2srcFGRD1xtJc7ZSVGJ77wfuXL1x9RPzCsSdu2ZM=
+github.com/sirkon/gosrcfmt v1.6.0/go.mod h1:BND5HTekpv2OQlbrhk55vyurK1tnpGIGxqHxfqTSXZE=
 github.com/sirkon/message v1.5.1 h1:WkWYJGan4rkpAkZmHC0+Sy2da4orydz1lM6zL+CXAVQ=
 github.com/sirkon/message v1.5.1/go.mod h1:66L/RZsLkQeAw8iJjJAhHg/Wr7g2I6Ewlp3laCsb0RA=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=

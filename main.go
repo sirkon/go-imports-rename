@@ -1,10 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"go/format"
 	"go/parser"
 	"go/token"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/pkg/errors"
+	"github.com/sirkon/gosrcfmt"
 
 	parser2 "github.com/sirkon/go-imports-rename/internal/parser"
 	"github.com/sirkon/go-imports-rename/internal/replacer"
@@ -69,15 +71,15 @@ func main() {
 		}
 		filesCounter++
 
-		var fset token.FileSet
-		ast, err := parser.ParseFile(&fset, path, nil, parser.AllErrors|parser.ParseComments)
+		fset := token.NewFileSet()
+		goFile, err := parser.ParseFile(fset, path, nil, parser.AllErrors|parser.ParseComments)
 		if err != nil {
 			logger.Error().Err(err).Msgf("failed to parse %s", path)
 			return nil
 		}
 
 		var localChanges int
-		for _, imp := range ast.Imports {
+		for _, imp := range goFile.Imports {
 			pathValue := strings.Trim(imp.Path.Value, `"`)
 			rep := rep.Replace(pathValue)
 			switch v := rep.(type) {
@@ -108,8 +110,14 @@ func main() {
 				logger.Error().Err(err).Msgf("failed to update %s", path)
 				return nil
 			}
-			if err := format.Node(file, &fset, ast); err != nil {
+			formatted, err := gosrcfmt.AST(fset, goFile)
+			if err != nil {
+				logger.Error().Err(err).Msg("error when formatting a file")
+				return nil
+			}
+			if _, err := io.Copy(file, bytes.NewBuffer(formatted)); err != nil {
 				logger.Error().Err(err).Msgf("error when saving changes to %s", path)
+				return nil
 			}
 			if err := file.Close(); err != nil {
 				logger.Error().Err(err).Msgf("something went wrong for %s", path)
